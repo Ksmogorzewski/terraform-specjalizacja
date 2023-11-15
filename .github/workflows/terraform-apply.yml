@@ -1,0 +1,36 @@
+name: Terraform Apply
+
+on:
+  workflow_dispatch:
+    inputs:
+      apply_branch:
+        description: 'Apply branch'
+        required: true
+        default: 'main'
+        type: string
+
+jobs:
+  terraform-apply:
+    name: Terraform apply
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Checkout base branch
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.apply_branch }}
+
+      - name: Init Terraform 
+        run: |
+          terraform init
+          
+      - name: Terraform apply
+        run: |
+          terraform apply -auto-approve

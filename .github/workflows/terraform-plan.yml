@@ -1,0 +1,36 @@
+name: Terraform Plan
+
+on:
+  workflow_dispatch:
+    inputs:
+      plan_branch:
+        description: 'Plan branch'
+        required: true
+        default: 'main'
+        type: string
+
+jobs:
+  terraform-plan:
+    name: Terraform plan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Checkout base branch
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.plan_branch }}
+
+      - name: Init Terraform 
+        run: |
+          terraform init
+          
+      - name: Generate Terraform plan
+        run: |
+          terraform plan
