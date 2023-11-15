@@ -1,0 +1,42 @@
+name: Infracost - workflow dispatch
+
+on:
+  workflow_dispatch:
+    inputs:
+      infracost_branch:
+        description: 'Infracost branch'
+        required: true
+        default: 'main'
+        type: string
+
+env:
+  SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+jobs:
+  infracost:
+    name: Infracost
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Setup Infracost
+        uses: infracost/actions/setup@v2
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+
+      - name: Checkout base branch
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.infracost_branch }}
+      - name: Generate Infracost cost estimate baseline
+        run: |
+          infracost breakdown --config-file=infracost.yml \
+                              --format=json \
+                              --out-file=infracost.json
+
+      - name: Create output table
+        run: |
+          infracost output  --path infracost.json \
+                            --format table
